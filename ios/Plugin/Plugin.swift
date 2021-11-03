@@ -131,10 +131,10 @@ public class BlobWriter: CAPPlugin {
       DispatchQueue.global().async { [weak self] in
           //this is happening on a background thread
           do {
-                            
-              guard let httpUrl = URL(string: url) else { return call.reject("Invalid URL") }
               
-              let content = try String(contentsOf: httpUrl)
+
+              guard let httpUrl = URL(string: url) else { return call.reject("Invalid URL") }
+            
               let data = try Data(contentsOf: httpUrl)
               let dest = URL(fileURLWithPath: path)
               
@@ -152,14 +152,12 @@ public class BlobWriter: CAPPlugin {
                 )
               }
               
-              print("\(dest)")
               try ( data.write(to: dest) )
               
 //              FileManager.default.write(at: data, to: dest)
               
               DispatchQueue.main.async {
                   //this is happening on the main thread
-                  print(content)
                   
                   call.resolve([:
             //        "base_url": baseUrl,
@@ -168,7 +166,9 @@ public class BlobWriter: CAPPlugin {
               }
           }
           catch {
-              call.reject("BlobWriter server not running", "server_down")
+              DispatchQueue.main.async {
+                  call.reject("BlobWriter download failed", "\(error)")
+              }
           }
       }
   }
