@@ -74,6 +74,7 @@ public class BlobWriter: CAPPlugin {
         try server.start(options: [
           GCDWebServerOption_Port: port,
           GCDWebServerOption_BindToLocalhost: true,
+          GCDWebServerOption_AutomaticallySuspendInBackground: false,
 
           // unfortunately, Basic auth breaks CORS
           // pending https://github.com/swisspol/GCDWebServer/issues/479
@@ -119,6 +120,57 @@ public class BlobWriter: CAPPlugin {
     } else {
       call.reject("BlobWriter server not running", "server_down")
     }
+  }
+
+  @objc func downloadFile(_ call: CAPPluginCall) {
+    
+      guard let url = call.getString("blob") else { return call.reject("Invalid URL") }
+      guard let path = call.getString("absolute_path") else { return call.reject("Invalid Path") }
+      guard let recursive = call.getBool("recursive") else { return call.reject("Invalid Bool") }
+      
+      DispatchQueue.global().async { [weak self] in
+          //this is happening on a background thread
+          do {
+                            
+              guard let httpUrl = URL(string: url) else { return call.reject("Invalid URL") }
+              
+              let content = try String(contentsOf: httpUrl)
+              let data = try Data(contentsOf: httpUrl)
+              let dest = URL(fileURLWithPath: path)
+              
+              // remove file if it exists
+              try? FileManager.default.removeItem(at: dest)
+              
+              // create intermediate directories
+              if (recursive == true) {
+                let destDir = dest.deletingLastPathComponent()
+
+                try FileManager.default.createDirectory(
+                  at: destDir,
+                  withIntermediateDirectories: true,
+                  attributes: nil
+                )
+              }
+              
+              print("\(dest)")
+              try ( data.write(to: dest) )
+              
+//              FileManager.default.write(at: data, to: dest)
+              
+              DispatchQueue.main.async {
+                  //this is happening on the main thread
+                  print(content)
+                  
+                  call.resolve([:
+            //        "base_url": baseUrl,
+            //        "auth_token": authToken
+                  ])
+              }
+          }
+          catch {
+              call.reject("BlobWriter server not running", "server_down")
+          }
+      }
   }
   
   private func emptyCorsResponse(

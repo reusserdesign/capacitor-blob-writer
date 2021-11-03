@@ -3,4 +3,5 @@
 
 CAP_PLUGIN(BlobWriter, "BlobWriter",
     CAP_PLUGIN_METHOD(get_config, CAPPluginReturnPromise);
+    CAP_PLUGIN_METHOD(downloadFile, CAPPluginReturnPromise);
 )

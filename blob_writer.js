@@ -117,4 +117,11 @@ function write_blob(options) {
     });
 }
 
+export async function downloadFile(url) {
+    const {path, directory} = url;
+    const file_info = await Filesystem.getUri({path, directory});
+    const absolute_path = file_info.uri.replace("file://", "");
+    return BlobWriter.downloadFile({...url, absolute_path});
+}
+
 export default Object.freeze(write_blob);
