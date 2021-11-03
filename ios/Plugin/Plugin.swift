@@ -124,7 +124,7 @@ public class BlobWriter: CAPPlugin {
 
   @objc func downloadFile(_ call: CAPPluginCall) {
     
-      guard let url = call.getString("blob") else { return call.reject("Invalid URL") }
+      guard let url = call.getString("url") else { return call.reject("Invalid URL") }
       guard let path = call.getString("absolute_path") else { return call.reject("Invalid Path") }
       guard let recursive = call.getBool("recursive") else { return call.reject("Invalid Bool") }
       
