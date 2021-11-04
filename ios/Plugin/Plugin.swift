@@ -125,7 +125,7 @@ public class BlobWriter: CAPPlugin {
   @objc func downloadFile(_ call: CAPPluginCall) {
     
       guard let url = call.getString("url") else { return call.reject("Invalid URL") }
-      guard let path = call.getString("absolute_path") else { return call.reject("Invalid Path") }
+      guard let path = call.getString("absolute_path")?.removingPercentEncoding else { return call.reject("Invalid Path") }
       guard let recursive = call.getBool("recursive") else { return call.reject("Invalid Bool") }
       
       DispatchQueue.global().async { [weak self] in
@@ -154,15 +154,10 @@ public class BlobWriter: CAPPlugin {
               
               try ( data.write(to: dest) )
               
-//              FileManager.default.write(at: data, to: dest)
-              
               DispatchQueue.main.async {
                   //this is happening on the main thread
                   
-                  call.resolve([:
-            //        "base_url": baseUrl,
-            //        "auth_token": authToken
-                  ])
+                  call.resolve([:])
               }
           }
           catch {
